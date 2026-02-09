@@ -6,6 +6,11 @@ const repo = process.env.GITHUB_REPOSITORY!;
 const issueNumber: number = event.issue.number;
 const workflowStartTime = Date.now();
 
+// Continuation constants
+const DEFAULT_CONTINUATION_THRESHOLD_MINUTES = 330; // 5.5 hours
+const DEFAULT_MAX_CONTINUATION_RUNS = 4; // 24 hours total
+const CONTINUATION_MARKER = "🔄 **Auto-continuation";
+
 async function run(cmd: string[], opts?: { stdin?: any }): Promise<{ exitCode: number; stdout: string }> {
   const proc = Bun.spawn(cmd, {
     stdout: "pipe",
@@ -27,6 +32,7 @@ interface ContinuationState {
   runCount: number;
   startedAt: string;
   lastRunAt: string;
+  token: string; // Security token to verify legitimate continuation
 }
 
 function getContinuationState(): ContinuationState | null {
@@ -38,6 +44,7 @@ function getContinuationState(): ContinuationState | null {
 }
 
 function saveContinuationState(state: ContinuationState) {
+  mkdirSync("state/issues", { recursive: true });
   const stateFile = `state/issues/${issueNumber}-continuation.json`;
   writeFileSync(stateFile, JSON.stringify(state, null, 2) + "\n");
 }
@@ -46,14 +53,14 @@ function shouldContinue(): boolean {
   const enableContinuation = process.env.ENABLE_AUTO_CONTINUATION === "true";
   if (!enableContinuation) return false;
 
-  const thresholdMinutes = parseInt(process.env.CONTINUATION_THRESHOLD_MINUTES || "330");
+  const thresholdMinutes = parseInt(process.env.CONTINUATION_THRESHOLD_MINUTES || String(DEFAULT_CONTINUATION_THRESHOLD_MINUTES));
   const elapsedMinutes = (Date.now() - workflowStartTime) / 60000;
   
   return elapsedMinutes >= thresholdMinutes;
 }
 
 function checkContinuationLimit(): boolean {
-  const maxRuns = parseInt(process.env.MAX_CONTINUATION_RUNS || "4");
+  const maxRuns = parseInt(process.env.MAX_CONTINUATION_RUNS || String(DEFAULT_MAX_CONTINUATION_RUNS));
   const state = getContinuationState();
   
   if (!state) return true; // First run, allow continuation
@@ -62,21 +69,31 @@ function checkContinuationLimit(): boolean {
 }
 
 async function triggerContinuation() {
+  const maxRuns = parseInt(process.env.MAX_CONTINUATION_RUNS || String(DEFAULT_MAX_CONTINUATION_RUNS));
   const state = getContinuationState() || {
     runCount: 0,
     startedAt: new Date().toISOString(),
     lastRunAt: new Date().toISOString(),
+    token: crypto.randomUUID(),
   };
   
   state.runCount += 1;
   state.lastRunAt = new Date().toISOString();
+  
+  // Generate new token for this continuation if it doesn't exist
+  if (!state.token) {
+    state.token = crypto.randomUUID();
+  }
+  
   saveContinuationState(state);
   
-  const continuationMessage = `🔄 **Auto-continuation ${state.runCount}/${process.env.MAX_CONTINUATION_RUNS || "4"}**
+  const continuationMessage = `${CONTINUATION_MARKER} ${state.runCount}/${maxRuns}**
 
 Approaching timeout limit. Continuing work in next run...
 
-_Session will resume automatically with full context._`;
+_Session will resume automatically with full context._
+
+<!-- continuation-token: ${state.token} -->`;
   
   await gh("issue", "comment", String(issueNumber), "--body", continuationMessage);
   console.log(`Triggered continuation run ${state.runCount}`);
@@ -123,10 +140,22 @@ try {
   
   if (eventName === "issue_comment") {
     const commentBody = event.comment.body;
-    // Check if this is an auto-continuation comment
-    if (commentBody.includes("🔄 **Auto-continuation") && event.comment.user.login === "github-actions[bot]") {
-      isContinuation = true;
-      prompt = "continue"; // Simple continuation prompt
+    // Check if this is an auto-continuation comment with valid token
+    if (commentBody.includes(CONTINUATION_MARKER) && event.comment.user.login === "github-actions[bot]") {
+      // Extract token from HTML comment
+      const tokenMatch = commentBody.match(/<!-- continuation-token: ([a-f0-9-]+) -->/);
+      const commentToken = tokenMatch ? tokenMatch[1] : null;
+      
+      // Verify token matches our saved state
+      const state = getContinuationState();
+      if (state && commentToken === state.token) {
+        isContinuation = true;
+        prompt = "Continue working on the task. Resume from where you left off and keep making progress until complete or you approach the time limit again.";
+        console.log("Valid continuation token verified");
+      } else {
+        console.log("Invalid continuation token, treating as regular comment");
+        prompt = commentBody;
+      }
     } else {
       prompt = commentBody;
     }
