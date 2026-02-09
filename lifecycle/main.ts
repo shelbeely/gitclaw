@@ -69,6 +69,16 @@ try {
   if (mode === "resume" && sessionPath) {
     piArgs.push("--session", sessionPath);
   }
+  
+  // Optional provider and model configuration
+  const provider = process.env.PI_PROVIDER;
+  const model = process.env.PI_MODEL;
+  if (provider) {
+    piArgs.push("--provider", provider);
+  }
+  if (model) {
+    piArgs.push("--model", model);
+  }
 
   const pi = Bun.spawn(piArgs, { stdout: "pipe", stderr: "ignore" });
   const tee = Bun.spawn(["tee", "/tmp/agent-raw.jsonl"], { stdin: pi.stdout, stdout: "inherit" });

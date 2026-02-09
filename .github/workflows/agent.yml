@@ -44,5 +44,9 @@ jobs:
       - name: Run
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PI_PROVIDER: ${{ vars.PI_PROVIDER }}
+          PI_MODEL: ${{ vars.PI_MODEL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun lifecycle/main.ts

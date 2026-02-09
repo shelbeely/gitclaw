@@ -31,7 +31,10 @@ Since sessions are in git, the agent can grep its own history and edit or summar
 ## Setup
 
 1. **Fork this repo**
-2. **Add your Anthropic API key** - go to **Settings → Secrets and variables → Actions** and create a secret named `ANTHROPIC_API_KEY`.
+2. **Add your API key** - go to **Settings → Secrets and variables → Actions** and create a secret for your chosen provider:
+   - `ANTHROPIC_API_KEY` for Anthropic Claude (default)
+   - `OPENROUTER_API_KEY` for OpenRouter (access to 100+ models)
+   - `OPENAI_API_KEY` for OpenAI
 3. **Open an issue** - the agent starts automatically.
 4. **Comment on the issue** - the agent resumes where it left off.
 
@@ -43,9 +46,39 @@ If you plan to use gitclaw for anything private, **make the repo private**. Publ
 
 ## Configuration
 
+You can customize the agent's behavior by setting repository variables and editing the workflow file.
+
+### Using Different Providers
+
+The agent supports multiple AI providers. To switch providers:
+
+1. **Add your API key as a secret** (Settings → Secrets and variables → Actions → Secrets):
+   - `ANTHROPIC_API_KEY` - for Anthropic Claude
+   - `OPENROUTER_API_KEY` - for OpenRouter (access to 100+ models)
+   - `OPENAI_API_KEY` - for OpenAI
+
+2. **Set provider and model as variables** (Settings → Secrets and variables → Actions → Variables):
+   - `PI_PROVIDER` - provider name (e.g., `openrouter`, `openai`, `anthropic`)
+   - `PI_MODEL` - model name (e.g., `anthropic/claude-3.5-sonnet`, `openai/gpt-4`, `google/gemini-pro-1.5`)
+
+**Example: Using OpenRouter with Claude 3.5 Sonnet**
+```
+PI_PROVIDER = openrouter
+PI_MODEL = anthropic/claude-3.5-sonnet
+```
+
+**Example: Using OpenRouter with GPT-4**
+```
+PI_PROVIDER = openrouter
+PI_MODEL = openai/gpt-4
+```
+
+If no provider/model is specified, the agent defaults to Anthropic's Claude with `ANTHROPIC_API_KEY`.
+
+### Advanced Configuration
+
 Edit `.github/workflows/agent.yml` to customize:
 
-- **Model:** Add `--provider` and `--model` flags to the `bunx pi` command.
 - **Tools:** Restrict with `--tools read,grep,find,ls` for read-only analysis.
 - **Thinking:** Add `--thinking high` for harder tasks.
 - **Trigger:** Adjust the `on:` block to filter by labels, assignees, etc.
