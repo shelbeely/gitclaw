@@ -7,7 +7,14 @@ labels: ["autonomous", "yolo"]
 <!-- 
 This template helps you create autonomous tasks that the agent completes with zero interaction.
 The agent will work through your requirements systematically and won't stop until done.
-Maximum runtime: 6 hours per run (GitHub Actions limit).
+
+Runtime: 
+- 6 hours per run (GitHub Actions limit)
+- With ENABLE_AUTO_CONTINUATION=true: Up to 24 hours across 4 runs (configurable)
+
+Enable auto-continuation in Settings → Actions → Variables:
+- ENABLE_AUTO_CONTINUATION = true
+- MAX_CONTINUATION_RUNS = 4
 -->
 
 ## Project Description
@@ -63,3 +70,17 @@ Build a complete weather app from scratch:
 
 Work through each step carefully. Test thoroughly. Don't stop until everything works perfectly.
 ```
+
+**For large projects (12-24 hours):**
+
+Enable auto-continuation and the agent will automatically chain multiple runs:
+
+```
+Build a complete e-commerce platform from scratch:
+
+[... extensive requirements ...]
+
+This is a large project that may take multiple runs. Continue working until fully complete.
+```
+
+The agent will work for ~5.5 hours, then automatically post a continuation comment and resume in the next run.
