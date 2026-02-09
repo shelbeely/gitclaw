@@ -63,22 +63,33 @@ The agent supports multiple AI providers. To switch providers:
    - `PI_THINKING` - thinking level: `off`, `minimal`, `low`, `medium`, `high`, `xhigh` (optional)
    - `AGENT_TIMEOUT_MINUTES` - job timeout in minutes, max 360 for GitHub-hosted (default: 360)
 
-**Example: Using OpenRouter with Claude 3.5 Sonnet**
+**Example configurations** (set these as repository variables in Settings → Actions → Variables):
+
+Using OpenRouter with Claude 3.5 Sonnet:
 ```
-PI_PROVIDER = openrouter
-PI_MODEL = anthropic/claude-3.5-sonnet
+Variable Name: PI_PROVIDER
+Value: openrouter
+
+Variable Name: PI_MODEL  
+Value: anthropic/claude-3.5-sonnet
 ```
 
-**Example: Using OpenRouter with GPT-4**
+Using OpenRouter with GPT-4:
 ```
-PI_PROVIDER = openrouter
-PI_MODEL = openai/gpt-4
+Variable Name: PI_PROVIDER
+Value: openrouter
+
+Variable Name: PI_MODEL
+Value: openai/gpt-4
 ```
 
-**Example: Enable high thinking for complex tasks**
+Enable high thinking for complex tasks:
 ```
-PI_THINKING = high
-AGENT_TIMEOUT_MINUTES = 360
+Variable Name: PI_THINKING
+Value: high
+
+Variable Name: AGENT_TIMEOUT_MINUTES
+Value: 360
 ```
 
 If no provider/model is specified, the agent defaults to Anthropic's Claude with `ANTHROPIC_API_KEY`.
@@ -152,10 +163,12 @@ Each issue continues the previous session - the agent has full memory of prior w
 
 ### Session Limits
 
-**Time**: 6 hours per job (GitHub-hosted) or 5 days (self-hosted runners)  
+**Time**: 6 hours maximum per job on GitHub-hosted runners (configurable via `AGENT_TIMEOUT_MINUTES`, max 360)  
 **Context**: Sessions persist across issues via git-committed conversation history  
 **Tokens**: Limited by your API provider (typically 100K+ tokens per request)  
 **Actions**: Unlimited tool calls within time limit - agent decides when it's done
+
+> **Note**: Self-hosted runners support longer timeouts (up to 5 days), but require additional workflow and runner configuration not covered here.
 
 ## Acknowledgments
 
