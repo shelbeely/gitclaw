@@ -4,6 +4,7 @@ const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH!, "utf-8"));
 const eventName = process.env.GITHUB_EVENT_NAME!;
 const repo = process.env.GITHUB_REPOSITORY!;
 const issueNumber: number = event.issue.number;
+const workflowStartTime = Date.now();
 
 async function run(cmd: string[], opts?: { stdin?: any }): Promise<{ exitCode: number; stdout: string }> {
   const proc = Bun.spawn(cmd, {
@@ -19,6 +20,66 @@ async function run(cmd: string[], opts?: { stdin?: any }): Promise<{ exitCode: n
 async function gh(...args: string[]): Promise<string> {
   const { stdout } = await run(["gh", ...args]);
   return stdout;
+}
+
+// Continuation support
+interface ContinuationState {
+  runCount: number;
+  startedAt: string;
+  lastRunAt: string;
+}
+
+function getContinuationState(): ContinuationState | null {
+  const stateFile = `state/issues/${issueNumber}-continuation.json`;
+  if (existsSync(stateFile)) {
+    return JSON.parse(readFileSync(stateFile, "utf-8"));
+  }
+  return null;
+}
+
+function saveContinuationState(state: ContinuationState) {
+  const stateFile = `state/issues/${issueNumber}-continuation.json`;
+  writeFileSync(stateFile, JSON.stringify(state, null, 2) + "\n");
+}
+
+function shouldContinue(): boolean {
+  const enableContinuation = process.env.ENABLE_AUTO_CONTINUATION === "true";
+  if (!enableContinuation) return false;
+
+  const thresholdMinutes = parseInt(process.env.CONTINUATION_THRESHOLD_MINUTES || "330");
+  const elapsedMinutes = (Date.now() - workflowStartTime) / 60000;
+  
+  return elapsedMinutes >= thresholdMinutes;
+}
+
+function checkContinuationLimit(): boolean {
+  const maxRuns = parseInt(process.env.MAX_CONTINUATION_RUNS || "4");
+  const state = getContinuationState();
+  
+  if (!state) return true; // First run, allow continuation
+  
+  return state.runCount < maxRuns;
+}
+
+async function triggerContinuation() {
+  const state = getContinuationState() || {
+    runCount: 0,
+    startedAt: new Date().toISOString(),
+    lastRunAt: new Date().toISOString(),
+  };
+  
+  state.runCount += 1;
+  state.lastRunAt = new Date().toISOString();
+  saveContinuationState(state);
+  
+  const continuationMessage = `🔄 **Auto-continuation ${state.runCount}/${process.env.MAX_CONTINUATION_RUNS || "4"}**
+
+Approaching timeout limit. Continuing work in next run...
+
+_Session will resume automatically with full context._`;
+  
+  await gh("issue", "comment", String(issueNumber), "--body", continuationMessage);
+  console.log(`Triggered continuation run ${state.runCount}`);
 }
 
 // Load reaction state from preinstall
@@ -58,10 +119,29 @@ try {
 
   // --- Build prompt ---
   let prompt: string;
+  let isContinuation = false;
+  
   if (eventName === "issue_comment") {
-    prompt = event.comment.body;
+    const commentBody = event.comment.body;
+    // Check if this is an auto-continuation comment
+    if (commentBody.includes("🔄 **Auto-continuation") && event.comment.user.login === "github-actions[bot]") {
+      isContinuation = true;
+      prompt = "continue"; // Simple continuation prompt
+    } else {
+      prompt = commentBody;
+    }
   } else {
     prompt = `${title}\n\n${body}`;
+  }
+  
+  // For continuation, always resume the session
+  if (isContinuation && existsSync(mappingFile)) {
+    const mapping = JSON.parse(readFileSync(mappingFile, "utf-8"));
+    if (existsSync(mapping.sessionPath)) {
+      mode = "resume";
+      sessionPath = mapping.sessionPath;
+      console.log(`Continuation detected, resuming session: ${sessionPath}`);
+    }
   }
 
   // --- Run agent ---
@@ -134,6 +214,14 @@ try {
   // --- Comment on issue ---
   const commentBody = agentText.slice(0, 60000);
   await gh("issue", "comment", String(issueNumber), "--body", commentBody);
+
+  // --- Check for auto-continuation ---
+  if (shouldContinue() && checkContinuationLimit()) {
+    console.log("Triggering auto-continuation...");
+    await triggerContinuation();
+  } else if (!checkContinuationLimit()) {
+    console.log("Maximum continuation runs reached, stopping.");
+  }
 
 } finally {
   // --- Remove eyes reaction ---

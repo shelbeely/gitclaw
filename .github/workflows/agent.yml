@@ -50,5 +50,8 @@ jobs:
           PI_PROVIDER: ${{ vars.PI_PROVIDER }}
           PI_MODEL: ${{ vars.PI_MODEL }}
           PI_THINKING: ${{ vars.PI_THINKING }}
+          ENABLE_AUTO_CONTINUATION: ${{ vars.ENABLE_AUTO_CONTINUATION }}
+          CONTINUATION_THRESHOLD_MINUTES: ${{ vars.CONTINUATION_THRESHOLD_MINUTES }}
+          MAX_CONTINUATION_RUNS: ${{ vars.MAX_CONTINUATION_RUNS }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun lifecycle/main.ts

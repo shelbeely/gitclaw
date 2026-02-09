@@ -63,6 +63,11 @@ The agent supports multiple AI providers. To switch providers:
    - `PI_THINKING` - thinking level: `off`, `minimal`, `low`, `medium`, `high`, `xhigh` (optional)
    - `AGENT_TIMEOUT_MINUTES` - job timeout in minutes, max 360 for GitHub-hosted (default: 360)
 
+3. **Optional: Enable auto-continuation for 24+ hour runs** (Settings → Actions → Variables):
+   - `ENABLE_AUTO_CONTINUATION` - set to `true` to enable automatic continuation across multiple runs
+   - `CONTINUATION_THRESHOLD_MINUTES` - when to trigger continuation (default: 330 = 5.5 hours)
+   - `MAX_CONTINUATION_RUNS` - maximum number of runs per issue (default: 4 = 24 hours)
+
 **Example configurations** (set these as repository variables in Settings → Actions → Variables):
 
 Using OpenRouter with Claude 3.5 Sonnet:
@@ -90,6 +95,18 @@ Value: high
 
 Variable Name: AGENT_TIMEOUT_MINUTES
 Value: 360
+```
+
+Enable 24-hour autonomous operation with auto-continuation:
+```
+Variable Name: ENABLE_AUTO_CONTINUATION
+Value: true
+
+Variable Name: CONTINUATION_THRESHOLD_MINUTES
+Value: 330
+
+Variable Name: MAX_CONTINUATION_RUNS
+Value: 4
 ```
 
 If no provider/model is specified, the agent defaults to Anthropic's Claude with `ANTHROPIC_API_KEY`.
@@ -151,9 +168,56 @@ Take your time and work through each step carefully. Don't stop until everything
 - **Use incremental steps**: The agent will work through your list methodically
 - **Leverage thinking**: Add `--thinking high` in the workflow for complex tasks
 
-### Multi-Turn Projects
+### Breaking the 6-Hour Limit: Auto-Continuation
 
-For projects exceeding 6 hours:
+You can now enable **automatic continuation** to work around the 6-hour GitHub Actions timeout. The agent will automatically trigger additional runs to continue work on complex tasks.
+
+**How it works:**
+
+1. When approaching the timeout (e.g., at 5.5 hours), the agent automatically posts a continuation comment
+2. This triggers a new workflow run that resumes the session with full context
+3. The agent continues working from where it left off
+4. This repeats up to a configurable maximum (default: 4 runs = 24 hours total)
+
+**To enable auto-continuation:**
+
+Set these repository variables (Settings → Actions → Variables):
+```
+Variable Name: ENABLE_AUTO_CONTINUATION
+Value: true
+
+Variable Name: MAX_CONTINUATION_RUNS
+Value: 4
+```
+
+**Example: 24-hour autonomous app build**
+
+```markdown
+Build a complete e-commerce platform from scratch with full testing:
+
+[... detailed requirements ...]
+
+This is a large project - take as much time as needed across multiple continuation runs.
+```
+
+With `ENABLE_AUTO_CONTINUATION=true` and `MAX_CONTINUATION_RUNS=4`, the agent will:
+- Run 1 (0-6h): Set up project structure, database, authentication
+- Run 2 (6-12h): Build product catalog, shopping cart
+- Run 3 (12-18h): Implement checkout, payment integration
+- Run 4 (18-24h): Add admin panel, testing, documentation
+
+The agent automatically continues between runs with no interaction needed.
+
+**Safety features:**
+- **Max run limit**: Prevents infinite loops (default: 4 runs)
+- **Continuation tracking**: State saved in git prevents duplicate runs
+- **Clear status**: Continuation comments show run count and progress
+
+**Note**: Each continuation comment counts as a new workflow run. Ensure you have sufficient GitHub Actions minutes.
+
+### Multi-Turn Projects (Manual Approach)
+
+For projects without auto-continuation enabled:
 
 1. **First issue**: "Build the foundation: Next.js app with authentication"
 2. **Second issue**: "Add the dashboard and data visualization"
@@ -163,8 +227,9 @@ Each issue continues the previous session - the agent has full memory of prior w
 
 ### Session Limits
 
-**Time**: 6 hours maximum per job on GitHub-hosted runners (configurable via `AGENT_TIMEOUT_MINUTES`, max 360)  
-**Context**: Sessions persist across issues via git-committed conversation history  
+**Time per run**: 6 hours maximum per job on GitHub-hosted runners (configurable via `AGENT_TIMEOUT_MINUTES`, max 360)  
+**Total time with continuation**: Up to 24 hours (or more) with `ENABLE_AUTO_CONTINUATION=true`  
+**Context**: Sessions persist across runs and issues via git-committed conversation history  
 **Tokens**: Limited by your API provider (typically 100K+ tokens per request)  
 **Actions**: Unlimited tool calls within time limit - agent decides when it's done
 
