@@ -73,11 +73,15 @@ try {
   // Optional provider and model configuration
   const provider = process.env.PI_PROVIDER;
   const model = process.env.PI_MODEL;
+  const thinking = process.env.PI_THINKING;
   if (provider) {
     piArgs.push("--provider", provider);
   }
   if (model) {
     piArgs.push("--model", model);
+  }
+  if (thinking) {
+    piArgs.push("--thinking", thinking);
   }
 
   const pi = Bun.spawn(piArgs, { stdout: "pipe", stderr: "ignore" });

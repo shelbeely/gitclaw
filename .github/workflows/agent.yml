@@ -14,6 +14,7 @@ permissions:
 jobs:
   run-agent:
     runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(vars.AGENT_TIMEOUT_MINUTES || '360') }}
     if: >
       (
         github.event_name == 'issues' &&
@@ -48,5 +49,6 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PI_PROVIDER: ${{ vars.PI_PROVIDER }}
           PI_MODEL: ${{ vars.PI_MODEL }}
+          PI_THINKING: ${{ vars.PI_THINKING }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun lifecycle/main.ts

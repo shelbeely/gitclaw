@@ -60,6 +60,8 @@ The agent supports multiple AI providers. To switch providers:
 2. **Set provider and model as variables** (Settings → Secrets and variables → Actions → Variables):
    - `PI_PROVIDER` - provider name (e.g., `openrouter`, `openai`, `anthropic`)
    - `PI_MODEL` - model name (e.g., `anthropic/claude-3.5-sonnet`, `openai/gpt-4`, `google/gemini-pro-1.5`)
+   - `PI_THINKING` - thinking level: `off`, `minimal`, `low`, `medium`, `high`, `xhigh` (optional)
+   - `AGENT_TIMEOUT_MINUTES` - job timeout in minutes, max 360 for GitHub-hosted (default: 360)
 
 **Example: Using OpenRouter with Claude 3.5 Sonnet**
 ```
@@ -73,6 +75,12 @@ PI_PROVIDER = openrouter
 PI_MODEL = openai/gpt-4
 ```
 
+**Example: Enable high thinking for complex tasks**
+```
+PI_THINKING = high
+AGENT_TIMEOUT_MINUTES = 360
+```
+
 If no provider/model is specified, the agent defaults to Anthropic's Claude with `ANTHROPIC_API_KEY`.
 
 ### Advanced Configuration
@@ -82,6 +90,72 @@ Edit `.github/workflows/agent.yml` to customize:
 - **Tools:** Restrict with `--tools read,grep,find,ls` for read-only analysis.
 - **Thinking:** Add `--thinking high` for harder tasks.
 - **Trigger:** Adjust the `on:` block to filter by labels, assignees, etc.
+- **Timeout:** Set `timeout-minutes: 360` (max 6 hours on GitHub-hosted runners).
+
+## Session Duration & Autonomous Operation
+
+### How Long Can a Session Run?
+
+**GitHub-hosted runners**: Each workflow job has a **6-hour (360 minute) maximum**. This is a hard limit imposed by GitHub Actions.
+
+**What happens in a single run:**
+1. Agent receives your prompt
+2. Processes it with full access to tools (read, write, bash, edit)
+3. Can make multiple file changes, run tests, install dependencies, etc.
+4. Commits changes and responds in one comment
+5. Stops until you comment again
+
+### "YOLO Mode" - Autonomous App Building
+
+Yes! You can have the agent build and debug an app from scratch with **zero interaction after the initial prompt**. The key is crafting a comprehensive initial prompt.
+
+**Example autonomous prompt:**
+
+```markdown
+Build a complete todo app from scratch:
+
+1. Create a Next.js app with TypeScript
+2. Set up Tailwind CSS for styling
+3. Implement:
+   - Todo list display
+   - Add todo functionality
+   - Mark as complete
+   - Delete todos
+   - Local storage persistence
+4. Add proper TypeScript types
+5. Style it to look modern and clean
+6. Create a README with setup instructions
+7. Test that it works by running `npm run dev`
+8. Fix any errors you encounter
+9. Make sure the build succeeds with `npm run build`
+
+Take your time and work through each step carefully. Don't stop until everything works.
+```
+
+**Tips for autonomous operation:**
+
+- **Be specific**: List exact requirements, tech stack, features
+- **Include validation**: Ask the agent to test and fix errors
+- **Set success criteria**: "make sure tests pass", "verify the app runs"
+- **Use incremental steps**: The agent will work through your list methodically
+- **Leverage thinking**: Add `--thinking high` in the workflow for complex tasks
+
+### Multi-Turn Projects
+
+For projects exceeding 6 hours:
+
+1. **First issue**: "Build the foundation: Next.js app with authentication"
+2. **Second issue**: "Add the dashboard and data visualization"
+3. **Third issue**: "Implement the API integration and error handling"
+
+Each issue continues the previous session - the agent has full memory of prior work.
+
+### Session Limits
+
+**Time**: 6 hours per job (GitHub-hosted) or 5 days (self-hosted runners)  
+**Context**: Sessions persist across issues via git-committed conversation history  
+**Tokens**: Limited by your API provider (typically 100K+ tokens per request)  
+**Actions**: Unlimited tool calls within time limit - agent decides when it's done
 
 ## Acknowledgments
 
