@@ -2,6 +2,8 @@
 
 Yes! You can swap pi out for a different coding agent. This guide explains how gitclaw integrates with pi and what you'd need to replicate to use an alternative agent.
 
+> **Note:** Interested in OpenClaw? See [OPENCLAW_VS_GITCLAW.md](OPENCLAW_VS_GITCLAW.md) for how OpenClaw and gitclaw relate to each other (spoiler: they're complementary, not competitive).
+
 ## Current Architecture
 
 ```
