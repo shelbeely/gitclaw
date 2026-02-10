@@ -369,6 +369,18 @@ See **[COST_ESTIMATION.md](COST_ESTIMATION.md)** for detailed pricing analysis a
 
 **Recommendation**: Kimi K2.5 via OpenRouter offers the best value (262K context, $0.45/$2.25 per 1M tokens).
 
+**💰 Complete Cost Breakdown:** See **[RUNNERS_AND_PRICING.md](RUNNERS_AND_PRICING.md)** for:
+- GitHub Actions runner recommendations
+- Exact GitHub Actions costs (free for public repos!)
+- Live AI model pricing from OpenRouter
+- Total cost examples and budget planning
+- Cost optimization strategies
+
+**Quick summary:**
+- **Public repos:** $0.02-0.27 per task (GitHub Actions is FREE!)
+- **Private repos:** $0.08-0.33 per task (includes GitHub Actions)
+- **Best value:** Public repo + Kimi K2.5 = $0.02 per task
+
 ## FAQ
 
 ### Does this still work through GitHub Actions?
