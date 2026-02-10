@@ -2,9 +2,11 @@
 
 A personal AI assistant that runs entirely through GitHub Issues and Actions. Like [OpenClaw](https://github.com/openclaw/openclaw), but no servers or extra infrastructure.
 
-Powered by the [pi coding agent](https://github.com/badlogic/pi-mono). Every issue becomes a chat thread with an AI agent. Conversation history is committed to git, giving the agent long-term memory across sessions. It can search prior context, edit or summarize past conversations, and all changes are versioned.
+**100% serverless** - Powered by the [pi coding agent](https://github.com/badlogic/pi-mono) or [OpenCode](https://github.com/anomalyco/opencode). Every issue becomes a chat thread with an AI agent. Conversation history is committed to git, giving the agent long-term memory across sessions. It can search prior context, edit or summarize past conversations, and all changes are versioned.
 
 Since the agent can read and write files, you can build an evolving software project that updates itself as you open issues. Try asking it to set up a GitHub Pages site, then iterate on it issue by issue.
+
+**Both agents run entirely in GitHub Actions** - no servers, no daemons, no infrastructure to maintain.
 
 ## How it works
 
@@ -366,6 +368,106 @@ See **[COST_ESTIMATION.md](COST_ESTIMATION.md)** for detailed pricing analysis a
 | Anthropic | Claude 3.5 | $5-22 | $19-86 |
 
 **Recommendation**: Kimi K2.5 via OpenRouter offers the best value (262K context, $0.45/$2.25 per 1M tokens).
+
+## FAQ
+
+### Does this still work through GitHub Actions?
+
+**Yes! 100% serverless.** Both pi and OpenCode run entirely in GitHub Actions with **zero infrastructure needed**.
+
+**How it works:**
+
+1. **Issue/comment created** → GitHub Actions workflow triggers
+2. **Dependencies installed** → `bun install` installs pi and/or OpenCode from npm
+3. **Agent runs** → Your chosen agent (pi or OpenCode) executes in the Actions runner
+4. **Results committed** → Changes pushed back to repo, comment posted to issue
+5. **Workflow completes** → Runner terminates, zero cost until next issue/comment
+
+**Architecture (both agents):**
+```
+GitHub Issue/Comment
+    ↓
+GitHub Actions Workflow (triggered)
+    ↓
+Ubuntu Runner (ephemeral)
+    ↓
+Bun Install (pi + OpenCode from npm)
+    ↓
+Agent Execution (lifecycle/main.ts)
+    ↓
+Git Commit & Push
+    ↓
+Issue Comment Reply
+    ↓
+Runner Terminates
+```
+
+**Key points:**
+- ✅ No servers to manage
+- ✅ No infrastructure to maintain
+- ✅ Works the same whether you choose pi or OpenCode
+- ✅ Both agents are just npm packages installed on-demand
+- ✅ OpenCode's client/server architecture runs entirely within the Actions job
+- ✅ Sessions persist in git (not in memory)
+
+### How does OpenCode work in GitHub Actions?
+
+OpenCode is designed to run as a daemon with TUI, but gitclaw uses it in **batch mode**:
+
+```typescript
+// In lifecycle/main.ts
+const opencodeArgs = ["opencode", "run", prompt, "--no-tui"];
+```
+
+The `--no-tui` flag disables the terminal UI, making it perfect for non-interactive GitHub Actions execution. OpenCode completes the task and exits, just like pi does.
+
+### Do I need to install anything?
+
+**No!** Both agents are installed automatically:
+
+1. Fork the repo
+2. Add your API key as a secret
+3. Open an issue
+
+GitHub Actions handles everything else:
+- Installs Bun
+- Runs `bun install` (installs pi and OpenCode from package.json)
+- Executes the agent
+- Commits results
+
+### Does dual agent support increase costs?
+
+**No cost increase.** You only run **one agent at a time** based on your `AGENT_TYPE` setting:
+
+- If `AGENT_TYPE=pi` (default) → Only pi runs
+- If `AGENT_TYPE=opencode` → Only OpenCode runs
+
+Both use the same API keys and GitHub Actions minutes. The only "cost" is having both packages installed (~50MB total), which is negligible.
+
+### Can I switch agents mid-session?
+
+**Yes, but sessions won't transfer perfectly.** Each agent has its own session format:
+
+- **Pi**: JSONL format in state/sessions/
+- **OpenCode**: Own session system
+
+**Recommendation:** Stick with one agent per repository or per issue thread. Switching is painless for new issues.
+
+### Which agent should I use?
+
+**Use pi (default) when:**
+- You want proven stability
+- Speed matters
+- Simple workflows
+- Don't need LSP features
+
+**Use OpenCode when:**
+- Need LSP-powered code intelligence
+- Working with complex codebases
+- Want multi-agent flexibility (build/plan/general modes)
+- Need superior code understanding
+
+Both are excellent! Pi is battle-tested, OpenCode offers advanced features.
 
 ## Agent Customization
 
