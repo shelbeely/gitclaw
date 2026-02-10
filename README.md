@@ -107,6 +107,29 @@ The agent supports multiple AI providers. To switch providers:
    - `PI_THINKING` - thinking level: `off`, `minimal`, `low`, `medium`, `high`, `xhigh` (optional)
    - `AGENT_TIMEOUT_MINUTES` - job timeout in minutes, max 360 for GitHub-hosted (default: 360)
 
+### Choosing Between Pi and OpenCode
+
+Gitclaw supports two coding agents: **pi** (default) and **OpenCode**. Choose based on your needs:
+
+**Pi (default):**
+- Lightweight and fast
+- Simple CLI invocation
+- Proven stability
+- Works great for most use cases
+
+**OpenCode:**
+- LSP integration for superior code intelligence
+- Multi-agent system (build/plan/general)
+- 75+ AI provider support
+- Desktop app available
+- Exceptional terminal UI
+
+**To use OpenCode** (Settings → Actions → Variables):
+- `AGENT_TYPE` - set to `opencode` (default: `pi`)
+- `OPENCODE_AGENT` - agent mode: `build`, `plan`, or `general` (default: `build`)
+
+Both agents share the same `PI_PROVIDER` and `PI_MODEL` configuration.
+
 3. **Optional: Enable auto-continuation for 24+ hour runs** (Settings → Actions → Variables):
    - `ENABLE_AUTO_CONTINUATION` - set to `true` to enable automatic continuation across multiple runs
    - `CONTINUATION_THRESHOLD_MINUTES` - when to trigger continuation (default: 330 = 5.5 hours)
@@ -118,28 +141,47 @@ The agent supports multiple AI providers. To switch providers:
 
 **Example configurations** (set these as repository variables in Settings → Actions → Variables):
 
-Using OpenRouter with Claude 3.5 Sonnet:
+**Using pi with OpenRouter (default, recommended):**
 ```
+Variable Name: AGENT_TYPE
+Value: pi
+
 Variable Name: PI_PROVIDER
 Value: openrouter
 
 Variable Name: PI_MODEL  
 Value: anthropic/claude-3.5-sonnet
+
+Variable Name: PI_THINKING
+Value: medium
 ```
 
-Using OpenRouter with GPT-4:
+**Using OpenCode with LSP intelligence:**
 ```
+Variable Name: AGENT_TYPE
+Value: opencode
+
+Variable Name: OPENCODE_AGENT
+Value: build
+
 Variable Name: PI_PROVIDER
 Value: openrouter
 
 Variable Name: PI_MODEL
-Value: openai/gpt-4
+Value: anthropic/claude-3.5-sonnet
 ```
 
-Enable high thinking for complex tasks:
+**Budget-conscious with Kimi K2.5:**
 ```
-Variable Name: PI_THINKING
-Value: high
+Variable Name: AGENT_TYPE
+Value: pi
+
+Variable Name: PI_PROVIDER
+Value: openrouter
+
+Variable Name: PI_MODEL
+Value: kimi/k2.5
+```
 
 Variable Name: AGENT_TIMEOUT_MINUTES
 Value: 360

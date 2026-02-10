@@ -51,6 +51,8 @@ jobs:
           PI_PROVIDER: ${{ vars.PI_PROVIDER }}
           PI_MODEL: ${{ vars.PI_MODEL }}
           PI_THINKING: ${{ vars.PI_THINKING }}
+          AGENT_TYPE: ${{ vars.AGENT_TYPE }}
+          OPENCODE_AGENT: ${{ vars.OPENCODE_AGENT }}
           ENABLE_AUTO_CONTINUATION: ${{ vars.ENABLE_AUTO_CONTINUATION }}
           CONTINUATION_THRESHOLD_MINUTES: ${{ vars.CONTINUATION_THRESHOLD_MINUTES }}
           MAX_CONTINUATION_RUNS: ${{ vars.MAX_CONTINUATION_RUNS }}

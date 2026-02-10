@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "@mariozechner/pi-coding-agent": "^0.52.5"
+  },
+  "optionalDependencies": {
+    "opencode-ai": "latest"
   }
 }

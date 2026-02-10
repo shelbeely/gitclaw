@@ -202,37 +202,88 @@ try {
   }
 
   // --- Run agent ---
-  const piArgs = ["bunx", "pi", "--mode", "json", "--session-dir", "./state/sessions", "-p", prompt];
-  if (mode === "resume" && sessionPath) {
-    piArgs.push("--session", sessionPath);
-  }
-  
-  // Optional provider and model configuration
+  const agentType = process.env.AGENT_TYPE || "pi";
   const provider = process.env.PI_PROVIDER;
   const model = process.env.PI_MODEL;
   const thinking = process.env.PI_THINKING;
-  if (provider) {
-    piArgs.push("--provider", provider);
-  }
-  if (model) {
-    piArgs.push("--model", model);
-  }
-  if (thinking) {
-    piArgs.push("--thinking", thinking);
-  }
+  
+  let agentText = "";
+  
+  if (agentType === "opencode") {
+    console.log("Using OpenCode agent");
+    
+    // Build OpenCode arguments
+    const opencodeArgs = ["opencode", "run", prompt];
+    
+    // Add agent mode (default to build for full permissions)
+    const agentMode = process.env.OPENCODE_AGENT || "build";
+    opencodeArgs.push("--agent", agentMode);
+    
+    // Disable TUI for non-interactive execution
+    opencodeArgs.push("--no-tui");
+    
+    // Map provider configuration to OpenCode format if available
+    if (provider) {
+      opencodeArgs.push("--provider", provider);
+    }
+    if (model) {
+      opencodeArgs.push("--model", model);
+    }
+    
+    // Execute OpenCode
+    const opencode = Bun.spawn(opencodeArgs, { 
+      stdout: "pipe", 
+      stderr: "pipe",
+      cwd: process.cwd()
+    });
+    
+    // Capture output
+    const output = await new Response(opencode.stdout).text();
+    const errors = await new Response(opencode.stderr).text();
+    
+    if (errors) {
+      console.error("OpenCode stderr:", errors);
+    }
+    
+    // OpenCode outputs results directly, extract the response
+    // Parse output (OpenCode may include formatting, extract the core response)
+    agentText = output.trim();
+    
+    await opencode.exited;
+    
+    console.log(`OpenCode completed with status: ${opencode.exitCode}`);
+  } else {
+    console.log("Using pi agent");
+    
+    // Build pi arguments
+    const piArgs = ["bunx", "pi", "--mode", "json", "--session-dir", "./state/sessions", "-p", prompt];
+    if (mode === "resume" && sessionPath) {
+      piArgs.push("--session", sessionPath);
+    }
+    
+    if (provider) {
+      piArgs.push("--provider", provider);
+    }
+    if (model) {
+      piArgs.push("--model", model);
+    }
+    if (thinking) {
+      piArgs.push("--thinking", thinking);
+    }
 
-  const pi = Bun.spawn(piArgs, { stdout: "pipe", stderr: "ignore" });
-  const tee = Bun.spawn(["tee", "/tmp/agent-raw.jsonl"], { stdin: pi.stdout, stdout: "inherit" });
-  await tee.exited;
+    const pi = Bun.spawn(piArgs, { stdout: "pipe", stderr: "ignore" });
+    const tee = Bun.spawn(["tee", "/tmp/agent-raw.jsonl"], { stdin: pi.stdout, stdout: "inherit" });
+    await tee.exited;
 
-  // Extract text from the agent's final message
-  const tac = Bun.spawn(["tac", "/tmp/agent-raw.jsonl"], { stdout: "pipe" });
-  const jq = Bun.spawn(
-    ["jq", "-r", "-s", '[ .[] | select(.type == "message_end") ] | .[0].message.content[] | select(.type == "text") | .text'],
-    { stdin: tac.stdout, stdout: "pipe" }
-  );
-  const agentText = await new Response(jq.stdout).text();
-  await jq.exited;
+    // Extract text from the agent's final message
+    const tac = Bun.spawn(["tac", "/tmp/agent-raw.jsonl"], { stdout: "pipe" });
+    const jq = Bun.spawn(
+      ["jq", "-r", "-s", '[ .[] | select(.type == "message_end") ] | .[0].message.content[] | select(.type == "text") | .text'],
+      { stdin: tac.stdout, stdout: "pipe" }
+    );
+    agentText = await new Response(jq.stdout).text();
+    await jq.exited;
+  }
 
   // Find latest session file
   const { stdout: latestSession } = await run([

@@ -4,6 +4,8 @@ Yes! You can swap pi out for a different coding agent. This guide explains how g
 
 > **Note:** Interested in OpenClaw? See [OPENCLAW_VS_GITCLAW.md](OPENCLAW_VS_GITCLAW.md) for how OpenClaw and gitclaw relate to each other (spoiler: they're complementary, not competitive).
 
+> **✨ Native OpenCode Support:** As of now, gitclaw has **built-in support for OpenCode**! Simply set `AGENT_TYPE=opencode` to use it. See the [README](README.md#choosing-between-pi-and-opencode) for configuration details. This guide covers additional alternatives and custom integrations.
+
 ## Current Architecture
 
 ```
@@ -166,6 +168,21 @@ const aiderArgs = [
 
 ### 2. OpenCode (anomaly)
 
+**✨ NATIVE SUPPORT AVAILABLE!**
+
+OpenCode is now natively supported in gitclaw! No manual integration needed.
+
+**Quick Setup:**
+```yaml
+# In GitHub Settings → Actions → Variables
+AGENT_TYPE: opencode
+OPENCODE_AGENT: build  # or "plan" for read-only
+PI_PROVIDER: openrouter
+PI_MODEL: anthropic/claude-3.5-sonnet
+```
+
+That's it! gitclaw will automatically use OpenCode instead of pi.
+
 **Pros:**
 - 100% open source
 - Model-agnostic (75+ providers)
@@ -174,35 +191,20 @@ const aiderArgs = [
 - Multi-agent system (build/plan/general)
 - Terminal-first with excellent TUI
 - Desktop app available
-
-**Integration Example:**
-```typescript
-const opencodeArgs = [
-  "opencode",
-  "run",                // One-shot command mode
-  prompt,
-  "--agent", "build",   // Use build agent
-  "--no-tui"            // Disable TUI for scripting
-];
-```
-
-**Challenges:**
-- Client/server model (may need running server)
-- TUI-focused (need non-interactive mode)
-- HTTP-based session management
-- Different output format than pi
-
-**Best for:** 
-- Complex multi-step tasks
-- LSP-powered code navigation
-- Multi-provider flexibility
-- Terminal-centric workflows
+- **Now built into gitclaw!**
 
 **Why It's Interesting:**
 - Most similar to pi in philosophy (terminal-first, model-agnostic)
 - Active development with strong community
-- Client/server allows remote control possibilities
+- Superior code understanding via LSP
 - Built by neovim users for terminal power users
+
+**When to Use:**
+- Complex multi-step tasks
+- Need LSP-powered code navigation
+- Want multi-provider flexibility
+- Terminal-centric workflows
+- Projects requiring deep code intelligence
 
 ### 3. GPT Engineer
 
