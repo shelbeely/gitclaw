@@ -55,7 +55,7 @@ function getElapsedMinutes(): number {
 }
 
 function getTimeoutLimit(): number {
-  return parseInt(process.env.AGENT_TIMEOUT_MINUTES || "360");
+  return parseInt(process.env.AGENT_TIMEOUT_MINUTES || "360", 10);
 }
 
 function getRemainingMinutes(): number {
@@ -277,7 +277,8 @@ try {
   
   // --- Check for approaching timeout ---
   if (isApproachingTimeout()) {
-    console.warn(`⚠️  WARNING: Approaching hard timeout! Only ${Math.floor(getRemainingMinutes())} minutes remaining.`);
+    const remainingMinutes = Math.floor(getRemainingMinutes());
+    console.warn(`⚠️  WARNING: Approaching hard timeout! Only ${remainingMinutes} minutes remaining.`);
     console.warn("All changes have been committed and pushed. Safe to timeout.");
   }
 
