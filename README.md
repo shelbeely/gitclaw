@@ -44,6 +44,50 @@ The workflow only responds to repository **owners, members, and collaborators**.
 
 If you plan to use gitclaw for anything private, **make the repo private**. Public repos mean your conversation history is visible to everyone, but get generous GitHub Actions usage.
 
+### ⚠️ Dangerously Skip Permissions
+
+**WARNING: USE AT YOUR OWN RISK** - See [SECURITY_SKIP_PERMISSIONS.md](SECURITY_SKIP_PERMISSIONS.md) for complete risk analysis.
+
+You can allow **anyone** to trigger the agent by setting:
+```
+Variable Name: DANGEROUSLY_SKIP_PERMISSIONS
+Value: true
+```
+
+**When to use this:**
+- Open source projects accepting contributions from anyone
+- Public demo repositories where you want to showcase the agent
+- Community projects with trusted contributors
+- Testing with non-privileged accounts
+
+**⚠️ CRITICAL SECURITY RISKS:**
+
+1. **API Cost Abuse**: Anyone can trigger unlimited API calls, costing you money
+2. **Resource Exhaustion**: Malicious users can exhaust your API quotas
+3. **Rate Limiting**: Your API keys may hit rate limits from abuse
+4. **Workflow Minutes**: GitHub Actions minutes will be consumed by anyone
+
+**Recommended Safeguards:**
+
+- ✅ Use with **budget-friendly models only** (e.g., Kimi K2.5 at $0.45/$2.25 per 1M tokens)
+- ✅ Set up **billing alerts** on your AI provider account
+- ✅ Use **dedicated API keys** with spending limits
+- ✅ Monitor usage frequently
+- ✅ Consider making repository **private** with selected collaborators
+- ✅ Set `MAX_CONTINUATION_RUNS=1` to limit per-issue cost
+- ✅ Set `AGENT_TIMEOUT_MINUTES=60` for shorter runs
+
+**Example Safe Configuration:**
+```
+DANGEROUSLY_SKIP_PERMISSIONS = true
+PI_PROVIDER = openrouter
+PI_MODEL = kimi/k2.5  # Cheap model
+MAX_CONTINUATION_RUNS = 1
+AGENT_TIMEOUT_MINUTES = 60
+```
+
+> **Note**: Even with this enabled, workflow secrets (API keys) are never exposed to the running code or users. However, usage of those API keys is unrestricted.
+
 ## Configuration
 
 You can customize the agent's behavior by setting repository variables and editing the workflow file.
@@ -67,6 +111,10 @@ The agent supports multiple AI providers. To switch providers:
    - `ENABLE_AUTO_CONTINUATION` - set to `true` to enable automatic continuation across multiple runs
    - `CONTINUATION_THRESHOLD_MINUTES` - when to trigger continuation (default: 330 = 5.5 hours)
    - `MAX_CONTINUATION_RUNS` - maximum number of runs per issue (default: 4 = 24 hours)
+
+4. **⚠️ Optional: Skip permissions (DANGEROUS)** (Settings → Actions → Variables):
+   - `DANGEROUSLY_SKIP_PERMISSIONS` - set to `true` to allow **anyone** to trigger the agent
+   - **WARNING**: Only use with spending limits and cheap models! See [Security](#security) section for risks.
 
 **Example configurations** (set these as repository variables in Settings → Actions → Variables):
 

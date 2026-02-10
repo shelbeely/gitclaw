@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ fromJSON(vars.AGENT_TIMEOUT_MINUTES || '360') }}
     if: >
+      vars.DANGEROUSLY_SKIP_PERMISSIONS == 'true' ||
       (
         github.event_name == 'issues' &&
         contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
