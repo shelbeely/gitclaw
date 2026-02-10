@@ -10,6 +10,7 @@ const workflowStartTime = Date.now();
 const DEFAULT_CONTINUATION_THRESHOLD_MINUTES = 330; // 5.5 hours
 const DEFAULT_MAX_CONTINUATION_RUNS = 4; // 24 hours total
 const CONTINUATION_MARKER = "🔄 **Auto-continuation";
+const SAFETY_BUFFER_MINUTES = 15; // Buffer before hard timeout for safe shutdown
 
 async function run(cmd: string[], opts?: { stdin?: any }): Promise<{ exitCode: number; stdout: string }> {
   const proc = Bun.spawn(cmd, {
@@ -49,12 +50,36 @@ function saveContinuationState(state: ContinuationState) {
   writeFileSync(stateFile, JSON.stringify(state, null, 2) + "\n");
 }
 
+function getElapsedMinutes(): number {
+  return (Date.now() - workflowStartTime) / 60000;
+}
+
+function getTimeoutLimit(): number {
+  return parseInt(process.env.AGENT_TIMEOUT_MINUTES || "360");
+}
+
+function getRemainingMinutes(): number {
+  return getTimeoutLimit() - getElapsedMinutes();
+}
+
+function isApproachingTimeout(): boolean {
+  return getRemainingMinutes() <= SAFETY_BUFFER_MINUTES;
+}
+
+function getTimeStatusMessage(): string {
+  const elapsed = Math.floor(getElapsedMinutes());
+  const remaining = Math.floor(getRemainingMinutes());
+  const hours = Math.floor(elapsed / 60);
+  const minutes = elapsed % 60;
+  return `⏱️ Runtime: ${hours}h ${minutes}m | Remaining: ${remaining} minutes`;
+}
+
 function shouldContinue(): boolean {
   const enableContinuation = process.env.ENABLE_AUTO_CONTINUATION === "true";
   if (!enableContinuation) return false;
 
   const thresholdMinutes = parseInt(process.env.CONTINUATION_THRESHOLD_MINUTES || String(DEFAULT_CONTINUATION_THRESHOLD_MINUTES));
-  const elapsedMinutes = (Date.now() - workflowStartTime) / 60000;
+  const elapsedMinutes = getElapsedMinutes();
   
   return elapsedMinutes >= thresholdMinutes;
 }
@@ -89,7 +114,9 @@ async function triggerContinuation() {
   
   const continuationMessage = `${CONTINUATION_MARKER} ${state.runCount}/${maxRuns}**
 
-Approaching timeout limit. Continuing work in next run...
+${getTimeStatusMessage()}
+
+Approaching timeout limit. All work has been committed and pushed safely. Continuing in next run...
 
 _Session will resume automatically with full context._
 
@@ -97,6 +124,7 @@ _Session will resume automatically with full context._
   
   await gh("issue", "comment", String(issueNumber), "--body", continuationMessage);
   console.log(`Triggered continuation run ${state.runCount}`);
+  console.log(getTimeStatusMessage());
 }
 
 // Load reaction state from preinstall
@@ -244,12 +272,22 @@ try {
   const commentBody = agentText.slice(0, 60000);
   await gh("issue", "comment", String(issueNumber), "--body", commentBody);
 
+  // --- Log time status ---
+  console.log(getTimeStatusMessage());
+  
+  // --- Check for approaching timeout ---
+  if (isApproachingTimeout()) {
+    console.warn(`⚠️  WARNING: Approaching hard timeout! Only ${Math.floor(getRemainingMinutes())} minutes remaining.`);
+    console.warn("All changes have been committed and pushed. Safe to timeout.");
+  }
+
   // --- Check for auto-continuation ---
   if (shouldContinue() && checkContinuationLimit()) {
     console.log("Triggering auto-continuation...");
     await triggerContinuation();
   } else if (!checkContinuationLimit()) {
     console.log("Maximum continuation runs reached, stopping.");
+    console.log(`Final status: ${getTimeStatusMessage()}`);
   }
 
 } finally {

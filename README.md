@@ -235,6 +235,48 @@ Each issue continues the previous session - the agent has full memory of prior w
 
 > **Note**: Self-hosted runners support longer timeouts (up to 5 days), but require additional workflow and runner configuration not covered here.
 
+### Safe Timeout Handling
+
+The agent implements multiple safety mechanisms to ensure work isn't lost:
+
+**Automatic Safeguards:**
+- All changes are committed and pushed to git before timeout
+- Continuation triggers at 5.5 hours (15-minute safety buffer)
+- Time status logged: "⏱️ Runtime: 5h 30m | Remaining: 30 minutes"
+- Warning issued when <15 minutes remain
+
+**How It Works:**
+1. Agent completes its work and commits all changes
+2. At 5h 30m, checks for continuation eligibility
+3. Pushes all commits safely to repository
+4. Posts continuation comment if enabled
+5. If timeout occurs, all work is already saved
+
+**Manual Safety:**
+- Keep CONTINUATION_THRESHOLD_MINUTES at default (330) for safety
+- Use AGENT_TIMEOUT_MINUTES to set a conservative limit if needed
+- Monitor GitHub Actions logs for time warnings
+
+**The 15-minute buffer ensures:**
+- Time to commit and push large changesets
+- GitHub Actions cleanup operations complete
+- Continuation comment is posted successfully
+- No work is ever lost to timeout
+
+## Cost Estimation
+
+See **[COST_ESTIMATION.md](COST_ESTIMATION.md)** for detailed pricing analysis and budget planning.
+
+**Quick Reference:**
+
+| Provider | Model | 6-Hour Build | 24-Hour Build |
+|----------|-------|--------------|---------------|
+| **MoonshotAI** | Kimi K2.5 | $1-5 | $4-20 |
+| OpenAI | GPT-4o | $3-16 | $14-65 |
+| Anthropic | Claude 3.5 | $5-22 | $19-86 |
+
+**Recommendation**: Kimi K2.5 via OpenRouter offers the best value (262K context, $0.45/$2.25 per 1M tokens).
+
 ## Acknowledgments
 
 Built on top of [pi-mono](https://github.com/badlogic/pi-mono) by [Mario Zechner](https://github.com/badlogic).
