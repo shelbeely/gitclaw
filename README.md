@@ -33,10 +33,13 @@ Since sessions are in git, the agent can grep its own history and edit or summar
 ## Setup
 
 1. **Fork this repo**
-2. **Add your API key** - go to **Settings → Secrets and variables → Actions** and create a secret for your chosen provider:
+2. **Add your API key** - go to **Settings → Secrets and variables → Actions → Secrets** and create a secret for your chosen provider:
    - `ANTHROPIC_API_KEY` for Anthropic Claude (default)
-   - `OPENROUTER_API_KEY` for OpenRouter (access to 100+ models)
+   - `OPENROUTER_API_KEY` for OpenRouter (access to 100+ models) **[Recommended]**
    - `OPENAI_API_KEY` for OpenAI
+   
+   **Note:** If you add `OPENROUTER_API_KEY`, the daily pricing update workflow will automatically fetch and update model pricing in [OPENROUTER_MODELS.md](OPENROUTER_MODELS.md).
+
 3. **Open an issue** - the agent starts automatically.
 4. **Comment on the issue** - the agent resumes where it left off.
 
