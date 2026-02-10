@@ -164,7 +164,47 @@ const aiderArgs = [
 
 **Best for:** Direct code modifications, refactoring
 
-### 2. GPT Engineer
+### 2. OpenCode (anomaly)
+
+**Pros:**
+- 100% open source
+- Model-agnostic (75+ providers)
+- LSP integration for code intelligence
+- Client/server architecture
+- Multi-agent system (build/plan/general)
+- Terminal-first with excellent TUI
+- Desktop app available
+
+**Integration Example:**
+```typescript
+const opencodeArgs = [
+  "opencode",
+  "run",                // One-shot command mode
+  prompt,
+  "--agent", "build",   // Use build agent
+  "--no-tui"            // Disable TUI for scripting
+];
+```
+
+**Challenges:**
+- Client/server model (may need running server)
+- TUI-focused (need non-interactive mode)
+- HTTP-based session management
+- Different output format than pi
+
+**Best for:** 
+- Complex multi-step tasks
+- LSP-powered code navigation
+- Multi-provider flexibility
+- Terminal-centric workflows
+
+**Why It's Interesting:**
+- Most similar to pi in philosophy (terminal-first, model-agnostic)
+- Active development with strong community
+- Client/server allows remote control possibilities
+- Built by neovim users for terminal power users
+
+### 3. GPT Engineer
 
 **Pros:**
 - Full project generation
@@ -343,18 +383,22 @@ bun lifecycle/main.ts
 
 ## Comparison Matrix
 
-| Feature | Pi | Aider | GPT Engineer | Custom |
-|---------|-----|-------|--------------|--------|
-| CLI Support | ✅ | ✅ | ✅ | ✅ |
-| Session Persistence | ✅ | ⚠️ | ❌ | Custom |
-| Multi-Provider | ✅ | ✅ | ⚠️ | Custom |
-| Structured Output | ✅ | ⚠️ | ❌ | Custom |
-| Git Integration | ✅ | ✅✅ | ✅ | Custom |
-| Code Understanding | ✅ | ✅ | ⚠️ | Custom |
-| Community | ⚠️ | ✅ | ⚠️ | N/A |
-| Maintenance | Active | Active | Mixed | You |
+| Feature | Pi | Aider | OpenCode | GPT Engineer | Custom |
+|---------|-----|-------|----------|--------------|--------|
+| CLI Support | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Session Persistence | ✅ | ⚠️ | ✅ | ❌ | Custom |
+| Multi-Provider | ✅ | ✅ | ✅✅ | ⚠️ | Custom |
+| Structured Output | ✅ | ⚠️ | ✅ | ❌ | Custom |
+| Git Integration | ✅ | ✅✅ | ✅ | ✅ | Custom |
+| Code Understanding | ✅ | ✅ | ✅✅ | ⚠️ | Custom |
+| LSP Integration | ❌ | ❌ | ✅✅ | ❌ | Custom |
+| TUI | ⚠️ | ❌ | ✅✅ | ❌ | Custom |
+| Community | ⚠️ | ✅ | ✅ | ⚠️ | N/A |
+| Maintenance | Active | Active | Active | Mixed | You |
+| Open Source | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Desktop App | ❌ | ❌ | ✅ | ❌ | Custom |
 
-Legend: ✅ Full support, ⚠️ Partial/requires work, ❌ Not available
+Legend: ✅ Full support, ✅✅ Exceptional, ⚠️ Partial/requires work, ❌ Not available
 
 ## Example: Aider Integration
 
@@ -548,7 +592,19 @@ Have you swapped pi for another agent? Share your experience!
 3. Session persistence ✓
 4. Structured output ✓
 
-With some adaptation work, most modern coding agents can slot in as replacements. The effort ranges from minimal (Aider) to significant (custom implementation), but it's definitely doable!
+With some adaptation work, most modern coding agents can slot in as replacements. The effort ranges from minimal (Aider, OpenCode) to significant (custom implementation), but it's definitely doable!
+
+**Standout Alternative: OpenCode**
+
+If you're looking for the most pi-like alternative, **OpenCode** is worth serious consideration:
+- ✅ Terminal-first philosophy (just like pi)
+- ✅ Model-agnostic (75+ providers)
+- ✅ Open source and actively maintained
+- ✅ LSP integration for superior code intelligence
+- ✅ Multi-agent system for different use cases
+- ✅ Desktop app available
+
+**Integration difficulty:** Moderate (client/server model requires adaptation, but `opencode run` command enables batch mode)
 
 **Need help?** Open an issue describing:
 - Which agent you want to use
