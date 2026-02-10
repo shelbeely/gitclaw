@@ -484,6 +484,33 @@ Both use the same API keys and GitHub Actions minutes. The only "cost" is having
 
 Both are excellent! Pi is battle-tested, OpenCode offers advanced features.
 
+### Does gitclaw support image generation?
+
+**Short answer:** Technically possible, but **not recommended**.
+
+**Why:**
+- GitHub Issues = text interface (no image display)
+- No storage/preview workflow for generated images
+- Coding agents optimized for code, not visual content
+- Better tools exist (Midjourney, DALL-E, direct OpenRouter API)
+
+**However, vision/image ANALYSIS is fully supported! ✅**
+
+Use gitclaw to:
+- Analyze UI screenshots → generate matching code
+- Read error screenshots → provide debugging fixes
+- Understand diagrams → create implementations
+- Convert handwritten code → clean implementations
+
+**For details:** See **[MULTIMODAL.md](MULTIMODAL.md)** for:
+- Complete explanation of multimodal capabilities
+- Gemini 3 Pro Image Preview details and pricing
+- Vision model comparison and recommendations
+- Practical vision-to-code workflows
+- Cost analysis for image analysis tasks
+
+**Bottom line:** Use gitclaw for vision INPUT → code OUTPUT. Use other tools for image generation.
+
 ## Agent Customization
 
 ### Swapping Agents
