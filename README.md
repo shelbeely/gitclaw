@@ -325,6 +325,24 @@ See **[COST_ESTIMATION.md](COST_ESTIMATION.md)** for detailed pricing analysis a
 
 **Recommendation**: Kimi K2.5 via OpenRouter offers the best value (262K context, $0.45/$2.25 per 1M tokens).
 
+## Agent Customization
+
+### Swapping Agents
+
+Want to use a different coding agent instead of pi? See **[SWAPPING_AGENTS.md](SWAPPING_AGENTS.md)** for:
+- How to replace pi with Aider, GPT Engineer, or custom implementations
+- Complete integration guide with examples
+- Feature comparison matrix
+- Step-by-step swap process
+
+### OpenClaw Integration
+
+Wondering about OpenClaw? See **[OPENCLAW_VS_GITCLAW.md](OPENCLAW_VS_GITCLAW.md)** for:
+- How OpenClaw and gitclaw relate (spoiler: they're complementary!)
+- Why they serve different purposes
+- How to use both together effectively
+- Architecture differences explained
+
 ## Acknowledgments
 
 Built on top of [pi-mono](https://github.com/badlogic/pi-mono) by [Mario Zechner](https://github.com/badlogic).
