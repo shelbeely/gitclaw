@@ -55,10 +55,10 @@ Value: true
 ```
 
 **When to use this:**
-- Open source projects accepting contributions from anyone
-- Public demo repositories where you want to showcase the agent
-- Community projects with trusted contributors
-- Testing with non-privileged accounts
+- Public demo repositories (actively monitored, with spending limits)
+- Private repositories with internal teams
+- Educational workshops (temporary, supervised usage)
+- Testing with non-privileged accounts (development/staging)
 
 **⚠️ CRITICAL SECURITY RISKS:**
 
