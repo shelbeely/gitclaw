@@ -43,6 +43,29 @@ Since sessions are in git, the agent can grep its own history and edit or summar
 3. **Open an issue** - the agent starts automatically.
 4. **Comment on the issue** - the agent resumes where it left off.
 
+## Agent Skills
+
+**Yes, gitclaw supports Agent Skills!** ✅
+
+Pi (and by extension, gitclaw) has a comprehensive skills system that allows you to extend the agent's capabilities with modular packages. Skills provide specialized knowledge, workflows, and tools.
+
+**Built-in skills:**
+- `memory` - Session memory and recall
+- `skill-creator` - Create new skills
+
+**Creating custom skills:**
+- Extend gitclaw with domain-specific capabilities
+- Bundle scripts, references, and assets
+- Progressive loading (efficient context usage)
+- Easy to add, remove, and share
+
+**Image generation plugin?**
+- **Effort:** 2-8 hours to implement
+- Uses skills system for clean integration
+- See [AGENT_SKILLS.md](AGENT_SKILLS.md) for complete guide
+
+👉 **Full documentation:** [AGENT_SKILLS.md](AGENT_SKILLS.md)
+
 ## Security
 
 The workflow only responds to repository **owners, members, and collaborators**. Random users cannot trigger the agent on public repos.
